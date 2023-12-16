@@ -31,6 +31,10 @@ export default function Home() {
     generateDistinctRandomNumbers
   );
 
+  useEffect(() => {
+    setCurrentNumbers(generateDistinctRandomNumbers);
+  }, [currentNumber]);
+
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
       <div className="">
@@ -51,7 +55,6 @@ export default function Home() {
                 if (isGameOver) return;
                 if (number != currentNumber) return setIsGameOver(true);
                 setCurrentNumber((prev) => prev + 1);
-                setCurrentNumbers(generateDistinctRandomNumbers);
               }}
               children={number}
             />
@@ -62,7 +65,6 @@ export default function Home() {
         <Button
           onClick={() => {
             setCurrentNumber(0);
-            setCurrentNumbers(generateDistinctRandomNumbers);
             setIsGameOver(false);
           }}
         >
