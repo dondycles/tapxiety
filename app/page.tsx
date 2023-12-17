@@ -1,6 +1,6 @@
 "use client";
 import Cube from "@/components/Cube";
-import { Button } from "@nextui-org/button";
+import { Button, ButtonGroup } from "@nextui-org/button";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion as m } from "framer-motion";
 import { Link } from "@nextui-org/react";
@@ -28,8 +28,28 @@ export default function Home() {
     const distinctRandomNumbers = numbers.slice(0, maxNumbers);
     return distinctRandomNumbers;
   };
+  const [isSelectingMode, setIsSelectingMode] = useState(false);
+  const [mode, setMode] = useState<"incremental" | "randomized">();
 
   const [currentNumbers, setCurrentNumbers] = useState<number[]>();
+
+  const gameOver = () => {
+    setIsGameOver(true);
+  };
+
+  const quit = () => {
+    setCurrentNumber(0);
+    setIsGameOver(true);
+    setIsPlaying(false);
+  };
+
+  const start = (setmode: "incremental" | "randomized" | null) => {
+    setCurrentNumber(0);
+    setIsGameOver(false);
+    setIsPlaying(true);
+    setMode(setmode || mode);
+    setIsSelectingMode(false);
+  };
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -41,93 +61,117 @@ export default function Home() {
       <div className="flex-1 flex items-center justify-center flex-col gap-4">
         <AnimatePresence mode="popLayout">
           <m.header layout className="text-center grid auto-rows-auto">
-            <m.h1 className="text-4xl font-black text-primary">TAPXIETY</m.h1>
-            <m.p>Tap away your anxiety.</m.p>
             {!isPlaying && (
-              <Button
-                color="primary"
-                variant="shadow"
-                className="font-black text-background mt-4"
-                onClick={() => {
-                  setIsPlaying(true);
-                }}
-              >
-                START
-              </Button>
+              <>
+                <m.h1 className="text-4xl font-black text-primary">
+                  TAPXIETY
+                </m.h1>
+                <m.p className="uppercase">Tap away your anxiety.</m.p>
+                {isSelectingMode ? (
+                  <div className="flex flex-col mt-4">
+                    <p>SELECT MODE:</p>
+                    <ButtonGroup className="mt-2">
+                      <Button
+                        color="primary"
+                        variant="shadow"
+                        className="font-black text-background "
+                        onClick={() => start("incremental")}
+                      >
+                        INCREMENTAL
+                      </Button>
+                      <Button
+                        color="primary"
+                        variant="shadow"
+                        className="font-black text-background "
+                        onClick={() => start("randomized")}
+                      >
+                        RANDOMIZED
+                      </Button>
+                    </ButtonGroup>
+                  </div>
+                ) : (
+                  <Button
+                    color="primary"
+                    variant="shadow"
+                    className="font-black text-background mt-4"
+                    onClick={() => setIsSelectingMode(true)}
+                  >
+                    START
+                  </Button>
+                )}
+              </>
             )}
           </m.header>
           {isPlaying && (
             <m.div
-              key={0}
+              key={String(isPlaying)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               layout
               className="flex flex-col items-center gap-4 h-fit w-fit"
             >
-              <m.p layout className="text-6xl font-black">
-                {isGameOver ? (
-                  <span className="text-danger">GAME OVER!</span>
-                ) : (
-                  <m.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    key={currentNumber}
-                  >
-                    {currentNumber}
+              <m.div className="flex flex-col items-center">
+                {isGameOver && (
+                  <m.span className="text-danger text-xl font-black">
+                    GAME OVER!
                   </m.span>
                 )}
-              </m.p>
+                <div>Mode: {mode}</div>
+                <div>
+                  {isGameOver && "Total "} Increments: {currentNumber}
+                </div>
+                <div className="text-primary font-black text-lg">
+                  Target: {currentNumber}
+                </div>
+              </m.div>
               <m.div
                 layout
-                className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit"
+                className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit overflow-hidden"
               >
-                <m.div
-                  layout
-                  className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4 ${
-                    isGameOver && " pointer-events-none"
-                  }`}
-                >
-                  <AnimatePresence mode="popLayout">
-                    {currentNumbers &&
-                      currentNumbers.map((number, index) => {
-                        return (
-                          <m.div
-                            key={number}
-                            initial={{ opacity: 0, scale: 0.75 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.75 }}
-                            transition={
-                              currentNumber === 0
-                                ? { duration: 1, delay: index / 10 }
-                                : { duration: 0.25 }
-                            }
-                          >
-                            <Cube
-                              onClick={(number) => {
-                                if (isGameOver) return;
-                                if (number != currentNumber)
-                                  return setIsGameOver(true);
-                                setCurrentNumber((prev) => prev + 1);
-                              }}
-                              children={number}
-                            />
-                          </m.div>
-                        );
-                      })}
-                  </AnimatePresence>
-                </m.div>
+                {!isGameOver && (
+                  <m.div
+                    layout
+                    className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4`}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {currentNumbers &&
+                        currentNumbers.map((number, index) => {
+                          return (
+                            <m.div
+                              key={index}
+                              initial={{ opacity: 0, scale: 0.75 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.75 }}
+                              transition={
+                                currentNumber === 0
+                                  ? { duration: 1, delay: index / 10 }
+                                  : { duration: 0.25 }
+                              }
+                            >
+                              <Cube
+                                onClick={(number) => {
+                                  if (number != currentNumber)
+                                    return gameOver();
+                                  if (isGameOver) return;
+                                  setCurrentNumber((prev) => prev + 1);
+                                }}
+                                children={number}
+                              />
+                            </m.div>
+                          );
+                        })}
+                    </AnimatePresence>
+                  </m.div>
+                )}
+
                 {isGameOver ? (
                   <>
                     <Button
                       color="warning"
                       variant="shadow"
                       className="font-black text-background"
-                      onClick={() => {
-                        setCurrentNumber(0);
-                        setIsGameOver(false);
-                      }}
+                      onClick={() => start(null)}
                     >
                       RESTART
                     </Button>
@@ -135,11 +179,7 @@ export default function Home() {
                       color="danger"
                       variant="shadow"
                       className="font-black text-background"
-                      onClick={() => {
-                        setCurrentNumber(0);
-                        setIsGameOver(false);
-                        setIsPlaying(false);
-                      }}
+                      onClick={quit}
                     >
                       QUIT
                     </Button>
@@ -149,11 +189,7 @@ export default function Home() {
                     color="danger"
                     variant="shadow"
                     className="font-black text-background"
-                    onClick={() => {
-                      setCurrentNumber(0);
-                      setIsGameOver(false);
-                      setIsPlaying(false);
-                    }}
+                    onClick={quit}
                   >
                     QUIT
                   </Button>
