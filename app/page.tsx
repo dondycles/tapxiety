@@ -3,7 +3,7 @@ import Cube from "@/components/Cube";
 import { Button, ButtonGroup } from "@nextui-org/button";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion as m } from "framer-motion";
-import { Link } from "@nextui-org/react";
+import { Link, Progress } from "@nextui-org/react";
 import { useHighScore } from "@/store";
 export default function Home() {
   const highScore = useHighScore();
@@ -11,6 +11,7 @@ export default function Home() {
   const [totalIncrements, setTotalIncrements] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [clickProgress, setClickProgress] = useState(0);
 
   const generateDistinctRandomNumbers = () => {
     const maxNumbers = 9;
@@ -79,160 +80,165 @@ export default function Home() {
       setTargetNumber(Math.floor(Math.random() * 1000));
   }, [isSelectingMode, isGameOver]);
 
+  useEffect(() => {
+    setClickProgress(0);
+    if (!isPlaying) return;
+    if (isGameOver) return;
+    const interval = setInterval(() => {
+      setClickProgress((v) => (v > 100 ? 0 : v + 5));
+    }, 250);
+    return () => clearInterval(interval);
+  }, [targetNumber, isPlaying, isGameOver]);
+
+  useEffect(() => {
+    if (clickProgress > 100) setIsGameOver(true);
+  }, [clickProgress]);
+
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
       <div className="flex-1 flex items-center justify-center flex-col gap-4">
-        <AnimatePresence mode="popLayout">
-          <m.header layout className="text-center grid auto-rows-auto">
-            {!isPlaying && (
-              <>
-                <m.h1 className="text-4xl font-black text-primary">
-                  TAPXIETY
-                </m.h1>
-                <m.p className="uppercase">Tap away your anxiety.</m.p>
-                {isSelectingMode ? (
-                  <div className="flex flex-col mt-4">
-                    <p>SELECT MODE:</p>
-                    <ButtonGroup className="mt-2">
-                      <Button
-                        color="primary"
-                        variant="shadow"
-                        className="font-black text-background "
-                        onClick={() => start("Incremental")}
-                      >
-                        INCREMENTAL
-                      </Button>
-                      <Button
-                        color="primary"
-                        variant="shadow"
-                        className="font-black text-background "
-                        onClick={() => start("Randomized")}
-                      >
-                        RANDOMIZED
-                      </Button>
-                    </ButtonGroup>
-                  </div>
-                ) : (
-                  <Button
-                    color="primary"
-                    variant="shadow"
-                    className="font-black text-background mt-4"
-                    onClick={() => setIsSelectingMode(true)}
-                  >
-                    START
-                  </Button>
-                )}
-              </>
-            )}
-          </m.header>
-          {isPlaying && (
-            <m.div
-              key={String(isPlaying)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              layout
-              className="flex flex-col items-center gap-4 h-fit w-fit"
-            >
-              <m.div
-                layout
-                className="flex flex-col items-center pointer-events-none"
-              >
-                {isGameOver ? (
-                  <>
-                    <m.span className="text-danger text-3xl font-black mb-4">
-                      GAME OVER!
-                    </m.span>
-                    <m.span className="text-primary text-xl font-black">
-                      HIGHEST SCORE: {highScore.highScore}
-                    </m.span>
-                    <m.span className="text-foreground text-xl font-black">
-                      CURRENT SCORE: {totalIncrements}
-                    </m.span>
-                  </>
-                ) : (
-                  <Cube onClick={() => {}} children={targetNumber} />
-                )}
-              </m.div>
-              <m.div
-                layout
-                className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit overflow-hidden"
-              >
-                {!isGameOver && (
-                  <m.div
-                    layout
-                    className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4`}
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {currentNumbers &&
-                        currentNumbers.map((number, index) => {
-                          return (
-                            <m.div
-                              key={index}
-                              initial={{ opacity: 0, scale: 0.75 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.75 }}
-                              transition={
-                                targetNumber === 0
-                                  ? { duration: 1, delay: index / 10 }
-                                  : { duration: 0.25 }
-                              }
-                            >
-                              <Cube
-                                onClick={(number) => regenerateTarget(number)}
-                                children={number}
-                              />
-                            </m.div>
-                          );
-                        })}
-                    </AnimatePresence>
-                  </m.div>
-                )}
-
-                {isGameOver ? (
-                  <>
+        <header className="text-center grid auto-rows-auto">
+          {!isPlaying && (
+            <>
+              <m.h1 className="text-4xl font-black text-primary">TAPXIETY</m.h1>
+              <m.p className="uppercase">Tap away your anxiety.</m.p>
+              {isSelectingMode ? (
+                <div className="flex flex-col mt-4">
+                  <p>SELECT MODE:</p>
+                  <ButtonGroup className="mt-2">
                     <Button
-                      color="warning"
+                      color="primary"
                       variant="shadow"
-                      className="font-black text-background"
-                      onClick={() => start(null)}
+                      className="font-black text-background "
+                      onClick={() => start("Incremental")}
                     >
-                      RESTART
+                      INCREMENTAL
                     </Button>
                     <Button
-                      color="danger"
+                      color="primary"
                       variant="shadow"
-                      className="font-black text-background"
-                      onClick={quit}
+                      className="font-black text-background "
+                      onClick={() => start("Randomized")}
                     >
-                      QUIT
+                      RANDOMIZED
                     </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      color="danger"
-                      variant="shadow"
-                      className="font-black text-background"
-                      onClick={quit}
-                    >
-                      QUIT
-                    </Button>
-                    <div>
-                      <p>Mode: {mode}</p>
-                      <p>
-                        {isGameOver && "Total "} Increments: {totalIncrements}
-                      </p>
-                      <p className="text-primary">
-                        Highest Score: {highScore.highScore}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </m.div>
-            </m.div>
+                  </ButtonGroup>
+                </div>
+              ) : (
+                <Button
+                  color="primary"
+                  variant="shadow"
+                  className="font-black text-background mt-4"
+                  onClick={() => setIsSelectingMode(true)}
+                >
+                  START
+                </Button>
+              )}
+            </>
           )}
-        </AnimatePresence>
+        </header>
+        {isPlaying && (
+          <div className="flex flex-col items-center gap-4 h-fit w-fit">
+            <div className="flex flex-col items-center pointer-events-none ">
+              {isGameOver ? (
+                <>
+                  <m.span className="text-danger text-3xl font-black mb-4">
+                    GAME OVER!
+                  </m.span>
+                  <m.span className="text-primary text-xl font-black">
+                    HIGHEST SCORE: {highScore.highScore}
+                  </m.span>
+                  <m.span className="text-foreground text-xl font-black">
+                    CURRENT SCORE: {totalIncrements}
+                  </m.span>
+                </>
+              ) : (
+                <Cube onClick={() => {}} children={targetNumber} />
+              )}
+            </div>
+            <Progress
+              key={targetNumber}
+              className={`${isGameOver && "hidden"}`}
+              aria-label="Timer"
+              size="md"
+              value={clickProgress}
+              color={`${clickProgress > 50 ? "danger" : "primary"}`}
+            />
+
+            <div className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit">
+              {!isGameOver && (
+                <div
+                  className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4`}
+                >
+                  <AnimatePresence mode="popLayout">
+                    {currentNumbers &&
+                      currentNumbers.map((number, index) => {
+                        return (
+                          <m.div
+                            key={index}
+                            initial={{ opacity: 0, scale: 0.75 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.75 }}
+                            transition={
+                              targetNumber === 0
+                                ? { duration: 1, delay: index / 10 }
+                                : { duration: 0.25 }
+                            }
+                          >
+                            <Cube
+                              onClick={(number) => regenerateTarget(number)}
+                              children={number}
+                            />
+                          </m.div>
+                        );
+                      })}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {isGameOver ? (
+                <>
+                  <Button
+                    color="warning"
+                    variant="shadow"
+                    className="font-black text-background"
+                    onClick={() => start(null)}
+                  >
+                    RESTART
+                  </Button>
+                  <Button
+                    color="danger"
+                    variant="shadow"
+                    className="font-black text-background"
+                    onClick={quit}
+                  >
+                    QUIT
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    color="danger"
+                    variant="shadow"
+                    className="font-black text-background"
+                    onClick={quit}
+                  >
+                    QUIT
+                  </Button>
+                  <div>
+                    <p>Mode: {mode}</p>
+                    <p>
+                      {isGameOver && "Total "} Increments: {totalIncrements}
+                    </p>
+                    <p className="text-primary">
+                      Highest Score: {highScore.highScore}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <footer className="mt-0 mb-0">
         created by{" "}
