@@ -2,7 +2,8 @@
 import Cube from "@/components/Cube";
 import { Button } from "@nextui-org/button";
 import { useEffect, useState } from "react";
-
+import { AnimatePresence, motion as m } from "framer-motion";
+import { Link } from "@nextui-org/react";
 export default function Home() {
   const [currentNumber, setCurrentNumber] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -37,95 +38,134 @@ export default function Home() {
 
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
-      <header className="text-center grid auto-rows-auto">
-        <h1 className="text-4xl font-black text-primary">TAPXIETY</h1>
-        <p>Tap away your anxiety.</p>
-        {!isPlaying && (
-          <Button
-            color="primary"
-            variant="shadow"
-            className="font-black text-background mt-4"
-            onClick={() => {
-              setIsPlaying(true);
-            }}
-          >
-            START
-          </Button>
-        )}
-      </header>
-      {isPlaying && (
-        <div className="flex flex-col items-center gap-4 h-fit w-fit">
-          <p className="text-6xl font-black">
-            {isGameOver ? (
-              <span className="text-danger">GAME OVER!</span>
-            ) : (
-              currentNumber
-            )}
-          </p>
-          <div className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit">
-            <div
-              className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4 ${
-                isGameOver && " pointer-events-none"
-              }`}
-            >
-              {currentNumbers &&
-                currentNumbers.map((number) => {
-                  return (
-                    <Cube
-                      key={number}
-                      onClick={(number) => {
-                        if (isGameOver) return;
-                        if (number != currentNumber) return setIsGameOver(true);
-                        setCurrentNumber((prev) => prev + 1);
-                      }}
-                      children={number}
-                    />
-                  );
-                })}
-            </div>
-            {isGameOver ? (
-              <>
-                <Button
-                  color="warning"
-                  variant="shadow"
-                  className="font-black text-background"
-                  onClick={() => {
-                    setCurrentNumber(0);
-                    setIsGameOver(false);
-                  }}
-                >
-                  RESTART
-                </Button>
-                <Button
-                  color="danger"
-                  variant="shadow"
-                  className="font-black text-background"
-                  onClick={() => {
-                    setCurrentNumber(0);
-                    setIsGameOver(false);
-                    setIsPlaying(false);
-                  }}
-                >
-                  QUIT
-                </Button>
-              </>
-            ) : (
+      <div className="flex-1 flex items-center justify-center flex-col gap-4">
+        <AnimatePresence mode="popLayout">
+          <m.header layout className="text-center grid auto-rows-auto">
+            <m.h1 className="text-4xl font-black text-primary">TAPXIETY</m.h1>
+            <m.p>Tap away your anxiety.</m.p>
+            {!isPlaying && (
               <Button
-                color="danger"
+                color="primary"
                 variant="shadow"
-                className="font-black text-background"
+                className="font-black text-background mt-4"
                 onClick={() => {
-                  setCurrentNumber(0);
-                  setIsGameOver(false);
-                  setIsPlaying(false);
+                  setIsPlaying(true);
                 }}
               >
-                QUIT
+                START
               </Button>
             )}
-          </div>
-        </div>
-      )}
+          </m.header>
+          {isPlaying && (
+            <m.div
+              key={0}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              layout
+              className="flex flex-col items-center gap-4 h-fit w-fit"
+            >
+              <m.p layout className="text-6xl font-black">
+                {isGameOver ? (
+                  <span className="text-danger">GAME OVER!</span>
+                ) : (
+                  <m.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={currentNumber}
+                  >
+                    {currentNumber}
+                  </m.span>
+                )}
+              </m.p>
+              <m.div
+                layout
+                className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit"
+              >
+                <m.div
+                  layout
+                  className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4 ${
+                    isGameOver && " pointer-events-none"
+                  }`}
+                >
+                  <AnimatePresence>
+                    {currentNumbers &&
+                      currentNumbers.map((number, index) => {
+                        return (
+                          <m.div
+                            key={index}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1, delay: index / 10 }}
+                          >
+                            <Cube
+                              onClick={(number) => {
+                                if (isGameOver) return;
+                                if (number != currentNumber)
+                                  return setIsGameOver(true);
+                                setCurrentNumber((prev) => prev + 1);
+                              }}
+                              children={number}
+                            />
+                          </m.div>
+                        );
+                      })}
+                  </AnimatePresence>
+                </m.div>
+                {isGameOver ? (
+                  <>
+                    <Button
+                      color="warning"
+                      variant="shadow"
+                      className="font-black text-background"
+                      onClick={() => {
+                        setCurrentNumber(0);
+                        setIsGameOver(false);
+                      }}
+                    >
+                      RESTART
+                    </Button>
+                    <Button
+                      color="danger"
+                      variant="shadow"
+                      className="font-black text-background"
+                      onClick={() => {
+                        setCurrentNumber(0);
+                        setIsGameOver(false);
+                        setIsPlaying(false);
+                      }}
+                    >
+                      QUIT
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    color="danger"
+                    variant="shadow"
+                    className="font-black text-background"
+                    onClick={() => {
+                      setCurrentNumber(0);
+                      setIsGameOver(false);
+                      setIsPlaying(false);
+                    }}
+                  >
+                    QUIT
+                  </Button>
+                )}
+              </m.div>
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+      <footer className="mt-0 mb-0">
+        created by{" "}
+        <Link size="sm" target="_blank" href="https://x.com/dondycles">
+          @dondycles
+        </Link>{" "}
+        | 2023
+      </footer>
     </main>
   );
 }
