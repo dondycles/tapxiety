@@ -1,7 +1,7 @@
 "use client";
 import Cube from "@/components/Cube";
 import { Button, ButtonGroup } from "@nextui-org/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion as m } from "framer-motion";
 import { Link, Progress } from "@nextui-org/react";
 import { useHighScore } from "@/store";
@@ -12,8 +12,6 @@ export default function Home() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [clickProgress, setClickProgress] = useState(0);
-
-  const clickAudio = useRef<HTMLAudioElement>(null);
 
   const generateDistinctRandomNumbers = () => {
     const maxNumbers = 9;
@@ -70,7 +68,7 @@ export default function Home() {
       setTargetNumber(Math.floor(Math.random() * 1000));
 
     setTotalIncrements((prev) => prev + 1);
-    clickAudio.current?.play();
+    new Audio("/click.mp3").play();
   };
 
   useEffect(() => {
@@ -99,13 +97,6 @@ export default function Home() {
 
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
-      <audio
-        ref={clickAudio}
-        hidden
-        autoPlay={false}
-        controls={false}
-        src="/click.mp3"
-      />
       <div className="flex-1 flex items-center justify-center flex-col gap-4">
         <header className="text-center grid auto-rows-auto">
           {!isPlaying && (

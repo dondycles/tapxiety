@@ -9,6 +9,7 @@ export default function Cube({
   onClick: (number: number) => void;
 }) {
   const [hyd, setHyd] = useState(false);
+
   useEffect(() => {
     setHyd(true);
   }, []);
@@ -18,7 +19,9 @@ export default function Cube({
         variant="shadow"
         color="primary"
         isIconOnly
-        onClick={() => onClick(children as number)}
+        onClick={() => {
+          onClick(children as number);
+        }}
         className="w-20 h-20 flex items-center justify-center text-background font-black text-xl"
       >
         {children}
