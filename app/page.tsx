@@ -89,16 +89,20 @@ export default function Home() {
                     isGameOver && " pointer-events-none"
                   }`}
                 >
-                  <AnimatePresence>
+                  <AnimatePresence mode="popLayout">
                     {currentNumbers &&
                       currentNumbers.map((number, index) => {
                         return (
                           <m.div
-                            key={index}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1, delay: index / 10 }}
+                            key={number}
+                            initial={{ opacity: 0, scale: 0.75 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.75 }}
+                            transition={
+                              currentNumber === 0
+                                ? { duration: 1, delay: index / 10 }
+                                : { duration: 0.25 }
+                            }
                           >
                             <Cube
                               onClick={(number) => {
