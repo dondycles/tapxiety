@@ -4,17 +4,21 @@ import { Button, ButtonGroup } from "@nextui-org/button";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion as m } from "framer-motion";
 import { Link } from "@nextui-org/react";
+import { useHighScore } from "@/store";
 export default function Home() {
-  const [currentNumber, setCurrentNumber] = useState(0);
+  const highScore = useHighScore();
+  const [targetNumber, setTargetNumber] = useState(0);
+  const [totalIncrements, setTotalIncrements] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
   const generateDistinctRandomNumbers = () => {
     const maxNumbers = 9;
-    const maxRange = currentNumber + 8; // You can adjust the range as needed
+    const maxRange = targetNumber + 8; // You can adjust the range as needed
     let numbers = [];
 
     // Fill the numbers array with values from currentNumber to maxRange
-    for (let i = currentNumber; i <= maxRange; i++) {
+    for (let i = targetNumber; i <= maxRange; i++) {
       numbers.push(i);
     }
 
@@ -28,33 +32,52 @@ export default function Home() {
     const distinctRandomNumbers = numbers.slice(0, maxNumbers);
     return distinctRandomNumbers;
   };
-  const [isSelectingMode, setIsSelectingMode] = useState(false);
-  const [mode, setMode] = useState<"incremental" | "randomized">();
 
+  const [isSelectingMode, setIsSelectingMode] = useState(false);
+  const [mode, setMode] = useState<"Incremental" | "Randomized">();
   const [currentNumbers, setCurrentNumbers] = useState<number[]>();
 
   const gameOver = () => {
     setIsGameOver(true);
+
+    if (totalIncrements > highScore.highScore) {
+      highScore.setHighScore(totalIncrements);
+    }
   };
 
   const quit = () => {
-    setCurrentNumber(0);
     setIsGameOver(true);
     setIsPlaying(false);
   };
 
-  const start = (setmode: "incremental" | "randomized" | null) => {
-    setCurrentNumber(0);
+  const start = (setmode: "Incremental" | "Randomized" | null) => {
     setIsGameOver(false);
     setIsPlaying(true);
     setMode(setmode || mode);
     setIsSelectingMode(false);
+    setTotalIncrements(0);
+  };
+
+  const regenerateTarget = (number: number) => {
+    if (number != targetNumber) return gameOver();
+    if (isGameOver) return;
+
+    if (mode === "Incremental") setTargetNumber((prev) => prev + 1);
+    if (mode === "Randomized")
+      setTargetNumber(Math.floor(Math.random() * 1000));
+
+    setTotalIncrements((prev) => prev + 1);
   };
 
   useEffect(() => {
-    if (!isPlaying) return;
-    setCurrentNumbers(generateDistinctRandomNumbers);
-  }, [currentNumber, isPlaying]);
+    if (isPlaying) setCurrentNumbers(generateDistinctRandomNumbers);
+  }, [targetNumber, isPlaying]);
+
+  useEffect(() => {
+    if (mode === "Incremental") setTargetNumber(0);
+    if (mode === "Randomized")
+      setTargetNumber(Math.floor(Math.random() * 1000));
+  }, [isSelectingMode, isGameOver]);
 
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
@@ -75,7 +98,7 @@ export default function Home() {
                         color="primary"
                         variant="shadow"
                         className="font-black text-background "
-                        onClick={() => start("incremental")}
+                        onClick={() => start("Incremental")}
                       >
                         INCREMENTAL
                       </Button>
@@ -83,7 +106,7 @@ export default function Home() {
                         color="primary"
                         variant="shadow"
                         className="font-black text-background "
-                        onClick={() => start("randomized")}
+                        onClick={() => start("Randomized")}
                       >
                         RANDOMIZED
                       </Button>
@@ -111,19 +134,25 @@ export default function Home() {
               layout
               className="flex flex-col items-center gap-4 h-fit w-fit"
             >
-              <m.div className="flex flex-col items-center">
-                {isGameOver && (
-                  <m.span className="text-danger text-xl font-black">
-                    GAME OVER!
-                  </m.span>
+              <m.div
+                layout
+                className="flex flex-col items-center pointer-events-none"
+              >
+                {isGameOver ? (
+                  <>
+                    <m.span className="text-danger text-3xl font-black mb-4">
+                      GAME OVER!
+                    </m.span>
+                    <m.span className="text-primary text-xl font-black">
+                      HIGHEST SCORE: {highScore.highScore}
+                    </m.span>
+                    <m.span className="text-foreground text-xl font-black">
+                      CURRENT SCORE: {totalIncrements}
+                    </m.span>
+                  </>
+                ) : (
+                  <Cube onClick={() => {}} children={targetNumber} />
                 )}
-                <div>Mode: {mode}</div>
-                <div>
-                  {isGameOver && "Total "} Increments: {currentNumber}
-                </div>
-                <div className="text-primary font-black text-lg">
-                  Target: {currentNumber}
-                </div>
               </m.div>
               <m.div
                 layout
@@ -144,18 +173,13 @@ export default function Home() {
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.75 }}
                               transition={
-                                currentNumber === 0
+                                targetNumber === 0
                                   ? { duration: 1, delay: index / 10 }
                                   : { duration: 0.25 }
                               }
                             >
                               <Cube
-                                onClick={(number) => {
-                                  if (number != currentNumber)
-                                    return gameOver();
-                                  if (isGameOver) return;
-                                  setCurrentNumber((prev) => prev + 1);
-                                }}
+                                onClick={(number) => regenerateTarget(number)}
                                 children={number}
                               />
                             </m.div>
@@ -185,14 +209,20 @@ export default function Home() {
                     </Button>
                   </>
                 ) : (
-                  <Button
-                    color="danger"
-                    variant="shadow"
-                    className="font-black text-background"
-                    onClick={quit}
-                  >
-                    QUIT
-                  </Button>
+                  <>
+                    <Button
+                      color="danger"
+                      variant="shadow"
+                      className="font-black text-background"
+                      onClick={quit}
+                    >
+                      QUIT
+                    </Button>
+                    <div>Mode: {mode}</div>
+                    <div>
+                      {isGameOver && "Total "} Increments: {totalIncrements}
+                    </div>
+                  </>
                 )}
               </m.div>
             </m.div>
