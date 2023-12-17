@@ -218,9 +218,14 @@ export default function Home() {
                     >
                       QUIT
                     </Button>
-                    <div>Mode: {mode}</div>
                     <div>
-                      {isGameOver && "Total "} Increments: {totalIncrements}
+                      <p>Mode: {mode}</p>
+                      <p>
+                        {isGameOver && "Total "} Increments: {totalIncrements}
+                      </p>
+                      <p className="text-primary">
+                        Highest Score: {highScore.highScore}
+                      </p>
                     </div>
                   </>
                 )}
