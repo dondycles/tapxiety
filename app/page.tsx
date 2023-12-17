@@ -39,6 +39,8 @@ export default function Home() {
   const [currentNumbers, setCurrentNumbers] = useState<number[]>();
 
   const gameOver = () => {
+    new Audio("/gameover.mp3").play();
+
     setIsGameOver(true);
 
     if (totalIncrements > highScore.highScore) {
@@ -47,6 +49,8 @@ export default function Home() {
   };
 
   const quit = () => {
+    new Audio("/quit.mp3").play();
+
     setIsGameOver(true);
     setIsPlaying(false);
   };
@@ -57,6 +61,7 @@ export default function Home() {
     setMode(setmode || mode);
     setIsSelectingMode(false);
     setTotalIncrements(0);
+    new Audio("/start.mp3").play();
   };
 
   const regenerateTarget = (number: number) => {
@@ -92,7 +97,9 @@ export default function Home() {
   }, [targetNumber, isPlaying, isGameOver]);
 
   useEffect(() => {
-    if (clickProgress > 100) setIsGameOver(true);
+    if (clickProgress > 100) {
+      gameOver();
+    }
   }, [clickProgress]);
 
   return (
