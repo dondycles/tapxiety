@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
 import { useEffect, useState } from "react";
 
 export default function Cube({
@@ -15,9 +15,11 @@ export default function Cube({
   if (hyd)
     return (
       <Button
+        variant="shadow"
+        color="primary"
         isIconOnly
         onClick={() => onClick(children as number)}
-        className="rounded bg-foreground w-12 h-12 flex items-center justify-center text-background font-black"
+        className="w-20 h-20 flex items-center justify-center text-background font-black text-xl"
       >
         {children}
       </Button>

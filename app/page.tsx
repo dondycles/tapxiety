@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [currentNumber, setCurrentNumber] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const generateDistinctRandomNumbers = () => {
     const maxNumbers = 9;
     const maxRange = currentNumber + 8; // You can adjust the range as needed
@@ -27,49 +28,103 @@ export default function Home() {
     return distinctRandomNumbers;
   };
 
-  const [currentNumbers, setCurrentNumbers] = useState<number[]>(
-    generateDistinctRandomNumbers
-  );
+  const [currentNumbers, setCurrentNumbers] = useState<number[]>();
 
   useEffect(() => {
+    if (!isPlaying) return;
     setCurrentNumbers(generateDistinctRandomNumbers);
-  }, [currentNumber]);
+  }, [currentNumber, isPlaying]);
 
   return (
     <main className="h-full w-full flex items-center justify-center flex-col gap-4">
-      <div className="">
-        <p className="text-2xl font-black">
-          {isGameOver ? "GAME OVER!" : currentNumber}
-        </p>
-      </div>
-      <div
-        className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-1 ${
-          isGameOver && " pointer-events-none"
-        }`}
-      >
-        {currentNumbers.map((number) => {
-          return (
-            <Cube
-              key={number}
-              onClick={(number) => {
-                if (isGameOver) return;
-                if (number != currentNumber) return setIsGameOver(true);
-                setCurrentNumber((prev) => prev + 1);
-              }}
-              children={number}
-            />
-          );
-        })}
-      </div>
-      {isGameOver && (
-        <Button
-          onClick={() => {
-            setCurrentNumber(0);
-            setIsGameOver(false);
-          }}
-        >
-          RESTART
-        </Button>
+      <header className="text-center grid auto-rows-auto">
+        <h1 className="text-4xl font-black text-primary">TAPXIETY</h1>
+        <p>Tap away your anxiety.</p>
+        {!isPlaying && (
+          <Button
+            color="primary"
+            variant="shadow"
+            className="font-black text-background mt-4"
+            onClick={() => {
+              setIsPlaying(true);
+            }}
+          >
+            START
+          </Button>
+        )}
+      </header>
+      {isPlaying && (
+        <div className="flex flex-col items-center gap-4 h-fit w-fit">
+          <p className="text-6xl font-black">
+            {isGameOver ? (
+              <span className="text-danger">GAME OVER!</span>
+            ) : (
+              currentNumber
+            )}
+          </p>
+          <div className="mx-auto grid auto-rows-auto gap-4 w-fit h-fit">
+            <div
+              className={`grid grid-cols-3 grid-rows-3 w-fit h-fit gap-4 ${
+                isGameOver && " pointer-events-none"
+              }`}
+            >
+              {currentNumbers &&
+                currentNumbers.map((number) => {
+                  return (
+                    <Cube
+                      key={number}
+                      onClick={(number) => {
+                        if (isGameOver) return;
+                        if (number != currentNumber) return setIsGameOver(true);
+                        setCurrentNumber((prev) => prev + 1);
+                      }}
+                      children={number}
+                    />
+                  );
+                })}
+            </div>
+            {isGameOver ? (
+              <>
+                <Button
+                  color="warning"
+                  variant="shadow"
+                  className="font-black text-background"
+                  onClick={() => {
+                    setCurrentNumber(0);
+                    setIsGameOver(false);
+                  }}
+                >
+                  RESTART
+                </Button>
+                <Button
+                  color="danger"
+                  variant="shadow"
+                  className="font-black text-background"
+                  onClick={() => {
+                    setCurrentNumber(0);
+                    setIsGameOver(false);
+                    setIsPlaying(false);
+                  }}
+                >
+                  QUIT
+                </Button>
+              </>
+            ) : (
+              <Button
+                color="danger"
+                variant="shadow"
+                className="font-black text-background"
+                onClick={() => {
+                  setCurrentNumber(0);
+                  setIsGameOver(false);
+                  setIsPlaying(false);
+                }}
+              >
+                QUIT
+              </Button>
+            )}
+          </div>
+        </div>
       )}
     </main>
   );
